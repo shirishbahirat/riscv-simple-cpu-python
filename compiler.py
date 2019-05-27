@@ -42,6 +42,7 @@ class inst_decode(inst_set_arch):
     def __init__(self, fname):
         super().__init__()
         self.fname = fname
+        self.outfile = open('riscv.txt', 'w')
 
     def reg_to_num(self, reg):
         return int(reg[1:3])
@@ -244,6 +245,10 @@ class inst_decode(inst_set_arch):
 
                 print(f"{mcode:032b}", line)
                 machine_code.append(mcode)
+                self.outfile.write(f"{mcode:032b}")
+                self.outfile.write('\n')
+
+        self.outfile.close()
 
 
 def main():
@@ -252,4 +257,7 @@ def main():
     compile.read_and_decode()
 
 
-main()
+if __name__ == "__main__":
+    print('Compile process start')
+    main()
+    print('Compile process complete')
