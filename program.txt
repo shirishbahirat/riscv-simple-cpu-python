@@ -12,3 +12,4 @@ ADDI x4, x0, 400
 ADD x10, x1, x2
 ADD x10, x10, x3
 SUB x10, x10, x4
+ADD x6, x10, x3
