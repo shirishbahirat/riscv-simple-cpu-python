@@ -1,0 +1,3 @@
+.start:
+ADD x6, x11, x12
+SUB x7, x13, x14
