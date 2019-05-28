@@ -36,13 +36,33 @@ class inst_set_arch(object):
 
         self._beq = '000'
 
+    def get_type(self, inst):
 
-class inst_decode(inst_set_arch):
+        if f"{int(inst[25:32]):07}" == self._r:
+            return 'r_type'
 
-    def __init__(self, fname):
+        elif f"{int(inst[25:32]):07}" == self._i:
+            return 'i_type'
+
+        elif f"{int(inst[25:32]):07}" == self._l:
+            return 'l_type'
+
+        elif f"{int(inst[25:32]):07}" == self._s:
+            return 's_type'
+
+        elif f"{int(inst[25:32]):07}" == self._b:
+            return 'b_type'
+
+        elif f"{int(inst[25:32]):07}" == self._j:
+            return 'j_type'
+
+
+class inst_encode(inst_set_arch):
+
+    def __init__(self, ifname, ofname):
         super().__init__()
-        self.fname = fname
-        self.outfile = open('riscv.txt', 'w')
+        self.fname = ifname
+        self.outfile = open(ofname, 'w')
 
     def reg_to_num(self, reg):
         return int(reg[1:3])
@@ -83,7 +103,7 @@ class inst_decode(inst_set_arch):
         elif (inst == 'sub') or (inst == 'sra'):
             return 'unique'
 
-    def j_code_decode(self, line):
+    def j_code_encode(self, line):
         mcode = int(self._j, 2)
         mcode = mcode | (self.reg_to_num(line[1]) << 7)
         imm_decode = int(line[3])
@@ -103,9 +123,9 @@ class inst_decode(inst_set_arch):
 
     def r_code_decode(self, line):
         mcode = int(self._r, 2)
-        mcode = mcode | (self.reg_to_num(line[1]) << 7)
-        mcode = mcode | (self.reg_to_num(line[2]) << 15)
-        mcode = mcode | (self.reg_to_num(line[3]) << 20)
+        mcode = mcode | ((self.reg_to_num(line[1]) & 31) << 7)
+        mcode = mcode | ((self.reg_to_num(line[2]) & 31) << 15)
+        mcode = mcode | ((self.reg_to_num(line[3]) & 4095) << 20)
         return mcode
 
     def s_code_decode(self, line):
@@ -117,8 +137,8 @@ class inst_decode(inst_set_arch):
 
     def i_code_decode(self, line):
         mcode = int(self._i, 2)
-        mcode = mcode | (self.reg_to_num(line[1]) << 7)
-        mcode = mcode | (self.reg_to_num(line[2]) << 15)
+        mcode = mcode | ((self.reg_to_num(line[1]) & 31) << 7)
+        mcode = mcode | ((self.reg_to_num(line[2]) & 31) << 15)
         return mcode
 
     def l_code_decode(self, line):
@@ -146,7 +166,7 @@ class inst_decode(inst_set_arch):
 
         return mcode
 
-    def read_and_decode(self):
+    def read_and_encode(self):
         with open(self.fname, "r") as ins:
             code = []
             machine_code = []
@@ -170,7 +190,7 @@ class inst_decode(inst_set_arch):
                 elif ((self.check_inst_type(line[0]) == 'i_type')
                         or (self.check_inst_type(line[0]) == 'is_type')):
                     mcode = self.i_code_decode(line)
-                    mcode = mcode | (int(line[3]) << 20)
+                    mcode = mcode | ((int(line[3]) & 4095) << 20)
 
                 elif (self.check_inst_type(line[0]) == 'l_type'):
                     mcode = self.l_code_decode(line)
@@ -251,13 +271,64 @@ class inst_decode(inst_set_arch):
         self.outfile.close()
 
 
+class inst_decode(inst_set_arch):
+
+    def __init__(self, fname):
+        super().__init__()
+        self.fname = fname
+
+    def read_and_decode(self):
+        with open(self.fname, "r") as ins:
+            machine_code = []
+
+            for line in ins:
+                line = line.rstrip()
+                if self.get_type(line) == 'r_type':
+                    rd = f"{int(line[20:25]):05}"
+                    func3 = f"{int(line[17:20]):03}"
+                    rs1 = f"{int(line[12:17]):05}"
+                    rs2 = f"{int(line[7:12]):05}"
+                    func7 = f"{int(line[0:7]):07}"
+                    print(line, func7, rs2, rs1, func3, rd)
+
+                elif self.get_type(line) == 'i_type':
+                    rd = f"{int(line[20:25]):05}"
+                    func3 = f"{int(line[17:20]):03}"
+                    rs1 = f"{int(line[12:17]):05}"
+                    imm = f"{int(line[0:12]):012}"
+                    print(line, imm, rs1, func3, rd)
+
+                elif self.get_type(line) == 'l_type':
+                    rd = f"{int(line[20:25]):05}"
+                    func3 = f"{int(line[17:20]):03}"
+                    base = f"{int(line[12:17]):05}"
+                    offset = f"{int(line[0:12]):012}"
+                    print(line, offset, base, func3, rd)
+
+                elif self.get_type(line) == 's_type':
+                    rd = f"{int(line[20:25]):05}"
+                    func3 = f"{int(line[17:20]):03}"
+                    rs1 = f"{int(line[12:17]):05}"
+                    shamt = f"{int(line[7:12]):05}"
+                    imm = f"{int(line[0:7]):07}"
+                    print(line, imm, shamt, rs1, func3, rd)
+
+                elif self.get_type(line) == 'b_type':
+                    pass
+                elif self.get_type(line) == 'j_type':
+                    pass
+
+
 def main():
 
-    compile = inst_decode('program.txt')
-    compile.read_and_decode()
+    print('Compile process start')
+    compile = inst_encode('program.txt', 'riscv.txt')
+    compile.read_and_encode()
+    print('Compile process complete')
+
+    decode = inst_decode('riscv.txt')
+    decode.read_and_decode()
 
 
 if __name__ == "__main__":
-    print('Compile process start')
     main()
-    print('Compile process complete')
