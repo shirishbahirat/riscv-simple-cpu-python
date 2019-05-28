@@ -1,0 +1,49 @@
+$date
+    Mon May 27 19:13:54 2019
+$end
+$version
+    MyHDL 0.10
+$end
+$timescale
+    1ns
+$end
+
+$scope module test_clock $end
+$var reg 1 ! clock $end
+$scope module clock_block $end
+$var reg 1 ! clock $end
+$upscope $end
+$upscope $end
+
+$enddefinitions $end
+$dumpvars
+b0 !
+$end
+#10
+b1 !
+#20
+b0 !
+#30
+b1 !
+#40
+b0 !
+#50
+b1 !
+#60
+b0 !
+#70
+b1 !
+#80
+b0 !
+#90
+b1 !
+#100
+b0 !
+#110
+b1 !
+#120
+b0 !
+#130
+b1 !
+#140
+b0 !
