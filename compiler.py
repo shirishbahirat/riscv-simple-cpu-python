@@ -322,11 +322,11 @@ class inst_decode(inst_set_arch):
 def main():
 
     print('Compile process start')
-    compile = inst_encode('program.txt', 'riscv.txt')
+    compile = inst_encode('program.asm', 'riscv.prg')
     compile.read_and_encode()
     print('Compile process complete')
 
-    decode = inst_decode('riscv.txt')
+    decode = inst_decode('riscv.prg')
     decode.read_and_decode()
 
 
